@@ -14,14 +14,32 @@ make
 
 #### usage
 
+- For Jetson raw data
+
 ```
 ./pixel_layer_convert -I [input format] -i [inputfile] -o [outputfile]
 ```
+
+- For Raspberrypi packed raw data
+The effective width of the image must be specified.
+```
+./pixel_layer_convert -I [input format] -w [image width] -i [inputfile] -o [outputfile]
+```
+
+- General Instructions
 
 The input and output formats are FourCC, which are listed below. The output format will automatically match the input format.
 This tool does not require the width and height as parameters and will complete the conversion as much as possible.
 The converted files can be easily opened using [vooya](https://www.offminor.de/ "vooya").
 Note: The input format parameter is case-insensitive.
+
+- Special instructions for the Raspberry Pi packed format
+
+Packed format Buffersize= ALIGN_UP（width*bit_depth/8,32）*ALIGN_UP(height,16);
+The row buffer size should be 32 bytes aligned; the column buffer size should be 16bytes aligned.
+The effective width of the image must be specified.
+This program discards the padded bytes in processing and processes only valid data.
+
 
 ### input format
 
@@ -41,174 +59,7 @@ Note: The input format parameter is case-insensitive.
 
 - Raspberrypi mipi packed mode
 
-<table>
-<caption>12bit Y packed pixel layer(FourCC: Y12P)
-</caption>
-<tbody><tr>
-<th colspan="8">Byte3
-</th>
-<th colspan="8">Byte2
-</th>
-<th colspan="8">Byte1
-</th></tr>
-<tr>
-<td>bit7
-</td>
-<td>bit6
-</td>
-<td>bit5
-</td>
-<td>bit4
-</td>
-<td>bit3
-</td>
-<td>bit2
-</td>
-<td>bit1
-</td>
-<td>bit0
-</td>
-<td>bit7
-</td>
-<td>bit6
-</td>
-<td>bit5
-</td>
-<td>bit4
-</td>
-<td>bit3
-</td>
-<td>bit2
-</td>
-<td>bit1
-</td>
-<td>bit0
-</td>
-<td>bit7
-</td>
-<td>bit6
-</td>
-<td>bit5
-</td>
-<td>bit4
-</td>
-<td>bit3
-</td>
-<td>bit2
-</td>
-<td>bit1
-</td>
-<td>bit0
-</td></tr>
-<tr>
-<td colspan="12">Pixel 2 data
-</td>
-<td colspan="12">Pixel 1 data
-</td></tr></tbody></table>
-<table>
-<caption>10bit Y packed pixel layer(FourCC: Y10P)
-</caption>
-<tbody><tr>
-<th colspan="8">Byte5
-</th>
-<th colspan="8">Byte4
-</th>
-<th colspan="8">Byte3
-</th>
-<th colspan="8">Byte2
-</th>
-<th colspan="8">Byte1
-</th></tr>
-<tr>
-<td>bit7
-</td>
-<td>bit6
-</td>
-<td>bit5
-</td>
-<td>bit4
-</td>
-<td>bit3
-</td>
-<td>bit2
-</td>
-<td>bit1
-</td>
-<td>bit0
-</td>
-<td>bit7
-</td>
-<td>bit6
-</td>
-<td>bit5
-</td>
-<td>bit4
-</td>
-<td>bit3
-</td>
-<td>bit2
-</td>
-<td>bit1
-</td>
-<td>bit0
-</td>
-<td>bit7
-</td>
-<td>bit6
-</td>
-<td>bit5
-</td>
-<td>bit4
-</td>
-<td>bit3
-</td>
-<td>bit2
-</td>
-<td>bit1
-</td>
-<td>bit0
-</td>
-<td>bit7
-</td>
-<td>bit6
-</td>
-<td>bit5
-</td>
-<td>bit4
-</td>
-<td>bit3
-</td>
-<td>bit2
-</td>
-<td>bit1
-</td>
-<td>bit0
-</td>
-<td>bit7
-</td>
-<td>bit6
-</td>
-<td>bit5
-</td>
-<td>bit4
-</td>
-<td>bit3
-</td>
-<td>bit2
-</td>
-<td>bit1
-</td>
-<td>bit0
-</td></tr>
-<tr>
-<td colspan="10">Pixel 4 data
-</td>
-<td colspan="10">Pixel 3 data
-</td>
-<td colspan="10">Pixel 2 data
-</td>
-<td colspan="10">Pixel 1 data
-</td></tr></tbody></table>
+![Raspberrypi packed data layer](./packed_pixel_layer.png)
 
 ### output format
 The ouput unpacked format, i.e., using two bytes to store one pixel of data.
