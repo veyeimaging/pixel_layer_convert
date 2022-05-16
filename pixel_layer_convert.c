@@ -188,14 +188,12 @@ int main(int argc, char *argv[])
     int opt;
     int ret = 0;
     int infilesize = 0;
-    char *infile,*outfile,*informat;
+    char *infile = NULL;
+    char *outfile = NULL;
+    char *informat = NULL;
     FILE *infd = NULL;
     FILE *outfd = NULL;
 
-    if(argc != 7){
-        printf("param number is not 7, exit!\r\n");
-        return -1;
-    }
     char *optstring = "I:i:o:h"; 
     while ((opt = getopt(argc, argv, optstring)) != -1) {
         switch(opt) {
@@ -217,14 +215,26 @@ int main(int argc, char *argv[])
             return -1;
         }
     }
+    if(infile == NULL){
+         printf("No input file\r\n");
+         return -1;
+    }
+    if(outfile == NULL){
+         printf("No output file\r\n");
+         return -1;
+    }
+    if(informat == NULL){
+         printf("No informat\r\n");
+         return -1;
+    }
     printf("input format %s, input file %s, outputfile %s\r\n",informat,infile,outfile);
-    infd = fopen(infile,"r");
+    infd = fopen(infile,"rb");
     if(infd == NULL){
         printf("open input file err \r\n");
         ret = -1;
         goto quit;
     }
-    outfd = fopen(outfile,"r");
+    outfd = fopen(outfile,"wb+");
     if(outfd == NULL){
         printf("open output file err \r\n");
         ret = -1;
