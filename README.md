@@ -35,8 +35,8 @@ Note: The input format parameter is case-insensitive.
 
 - Special instructions for the Raspberry Pi packed format
 
-Packed format Buffersize= ALIGN_UP（width*bit_depth/8,32）*ALIGN_UP(height,16);
-The row buffer size should be 32 bytes aligned; the column buffer size should be 16bytes aligned.
+Packed format Buffersize= ALIGN_UP（width*bit_depth/8,32）*ALIGN_UP(height,16).
+The row buffer size should be 32 bytes aligned,the column buffer size should be 16bytes aligned.
 The effective width of the image must be specified.
 This program discards the padded bytes in processing and processes only valid data.
 
