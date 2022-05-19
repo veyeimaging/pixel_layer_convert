@@ -29,15 +29,21 @@ The effective width of the image must be specified.
 - General Instructions
 
 The input and output formats are FourCC, which are listed below. The output format will automatically match the input format.
+
 This tool does not require the width and height as parameters and will complete the conversion as much as possible.
+
 The converted files can be easily opened using [vooya](https://www.offminor.de/ "vooya").
+
 Note: The input format parameter is case-insensitive.
 
 - Special instructions for the Raspberry Pi packed format
 
 Packed format Buffersize= ALIGN_UP（width*bit_depth/8,32）*ALIGN_UP(height,16).
+
 The row buffer size should be 32 bytes aligned,the column buffer size should be 16bytes aligned.
+
 The effective width of the image must be specified.
+
 This program discards the padded bytes in processing and processes only valid data.
 
 
