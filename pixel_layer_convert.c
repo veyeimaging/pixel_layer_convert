@@ -31,6 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 
 #define RPI_DEFAULT_BUFALIGN 32
+#define ROCKCHIP_DEFAULT_BUFALIGN 256
 #define ALIGN_DOWN(p,n) (((int)(p)) & ~((n)-1))
 #define ALIGN_UP(p,n) ALIGN_DOWN((int)(p)+(n)-1,(n))
 
@@ -38,11 +39,13 @@ typedef unsigned short u16;
 
 void print_help(void)
 {
-    printf(" ./pixel_layer_convert -I [input format] -i [inputfile] -o [outputfile] -w [width] \
-    input format: XY10,XY12,TY10,TY12,Y10P,Y12P\
-    output format: Y10 or Y12 \
-    width must be identified for rpi\r\n");
-    
+    printf(" ./pixel_layer_convert -I [input format] -i [inputfile] -o [outputfile] -w [width]\r\n\
+    input format: \r\n\
+        Jetson: XY10,XY12,TY10,TY12,\r\n\
+        RaspberryPi: Y10P,Y12P(mipi csi-2 bus layer)\r\n\
+        Rockchip: R10C,R12C(compact raw data)\r\n\
+    output format: unpacked Y10 or Y12 \r\n\
+    param [width] which representing the effective image width,must be identified for rpi and rockchip\r\n");
 }
 
 int __JetsonConvert(FILE * infd,FILE * outfd,int shift)
@@ -182,6 +185,102 @@ int __Y12P(FILE * infd,FILE * outfd,int eff_bufflen,int pad_bufflen)
     return 0;
 }
 
+int __R10C(FILE * infd,FILE * outfd,int eff_bufflen,int pad_bufflen)
+{
+    unsigned char pixldata[6];
+    size_t len = 0;
+    int total = 0;
+    int linenum = 0;
+    int line_bufdone = 0;
+    u16 onepixel = 0;
+    if(eff_bufflen == 0 || pad_bufflen == 0){
+        printf("Valid width must be entered, exit\r\n");
+        return -1;
+    }
+    printf("R10C effbuflen %d, pad buflen %d\r\n",eff_bufflen,pad_bufflen);
+    while(1){
+        
+        if((len = fread(&pixldata,sizeof(char),5,infd)) != 5){
+            break;
+        }
+        onepixel = ((((u16)pixldata[1])&0x03)<<8) + (u16)pixldata[0];
+        if((len = fwrite(&onepixel,sizeof(u16),1,outfd)) != 1){
+            break;
+        }
+        total += sizeof(u16);
+        
+        onepixel = (((u16)pixldata[2]&0x0F)<<6) + (((u16)pixldata[1])>>2);
+        if((len = fwrite(&onepixel,sizeof(u16),1,outfd)) != 1){
+            break;
+        }
+        total += sizeof(u16);
+        
+        onepixel = (((u16)pixldata[3]&0x3F)<<4) + (((u16)pixldata[2])>>4);
+        if((len = fwrite(&onepixel,sizeof(u16),1,outfd)) != 1){
+            break;
+        }
+        total += sizeof(u16);
+        
+        onepixel = (((u16)pixldata[4]<<2)) + (((u16)pixldata[3])>>6);
+        if((len = fwrite(&onepixel,sizeof(u16),1,outfd)) != 1){
+            break;
+        }
+        total += sizeof(u16);
+
+        line_bufdone+=5;
+        if(line_bufdone >= eff_bufflen){
+           // printf("oneline finish, linedone %d will skip %d\r\n",line_bufdone,pad_bufflen-line_bufdone);
+            //skip padded buffer
+            fseek(infd,pad_bufflen-line_bufdone,SEEK_CUR);
+            line_bufdone = 0;
+            linenum++;
+        }
+    }
+    printf("convert TY10 to Y10 ,total len %d finished,line %d\r\n",total,linenum);
+    return 0;
+}
+
+int __R12C(FILE * infd,FILE * outfd,int eff_bufflen,int pad_bufflen)
+{
+    unsigned char pixldata[4];
+    size_t len = 0;
+    int total = 0;
+    int line_bufdone = 0;
+    u16 onepixel = 0;
+    if(eff_bufflen == 0|| pad_bufflen == 0){
+        printf("Valid width must be entered, exit\r\n");
+        return -1;
+    }
+    
+    while(1){
+        if((len = fread(&pixldata,sizeof(char),3,infd)) != 3){
+            break;
+        }
+        
+        onepixel = ((((u16)pixldata[1])&0x0F)<<8) + (((u16)pixldata[0]));
+        if((len = fwrite(&onepixel,sizeof(u16),1,outfd)) != 1){
+            break;
+        }
+        total += sizeof(u16);
+        
+        onepixel = (((u16)pixldata[2]<<4)) + (((u16)pixldata[1])>>4);
+        if((len = fwrite(&onepixel,sizeof(u16),1,outfd)) != 1){
+            break;
+        }
+        total += sizeof(u16);
+        
+        line_bufdone+=3;
+        if(line_bufdone >= eff_bufflen){
+            //skip padded buffer
+            fseek(infd,pad_bufflen-line_bufdone,SEEK_CUR);
+            line_bufdone = 0;
+        }
+        
+    }
+    printf("convert TY12 to Y12 ,total len %d finished\r\n",total);
+    return 0;
+}
+
 int main(int argc, char *argv[])
 {
     int opt;
@@ -278,7 +377,26 @@ int main(int argc, char *argv[])
         eff_bufflen = eff_width*12/8;
         pad_bufflen = ALIGN_UP(eff_bufflen,RPI_DEFAULT_BUFALIGN);
         __Y12P(infd,outfd,eff_bufflen,pad_bufflen);
-    }else {
+    }else if(strcasecmp(informat,"R10C") == 0){
+        if(eff_width == 0){
+            printf("Valid width must be entered, exit\r\n");
+            return -1;
+        }
+        eff_width = ALIGN_UP(eff_width,8);
+        eff_bufflen = eff_width*10/8;
+        pad_bufflen = ALIGN_UP(eff_bufflen,ROCKCHIP_DEFAULT_BUFALIGN);
+        __R10C(infd,outfd,eff_bufflen,pad_bufflen);
+    }else if(strcasecmp(informat,"R12C") == 0){
+        if(eff_width == 0){
+            printf("Valid width must be entered, exit\r\n");
+            return -1;
+        }
+        eff_width = ALIGN_UP(eff_width,8);
+        eff_bufflen = eff_width*12/8;
+        pad_bufflen = ALIGN_UP(eff_bufflen,ROCKCHIP_DEFAULT_BUFALIGN);
+        __R12C(infd,outfd,eff_bufflen,pad_bufflen);
+    }
+    else {
         printf("input format not supported.\r\n");
     }
     
