@@ -67,12 +67,12 @@ This program discards the padded bytes in processing and processes only valid da
 
 ### input format
 
-- Jetson Xavier
+- Jetson Xavier/Orin
 
 | Depth | Bit order (X is undefined) | FourCC |
 | --- | --- | --- |
-| 10 | 0 B9 B8 B7 B6 B5 B4 B3 B2 B1 B0 X X X X X | XY10 |
-| 12 | 0 B11 B10 B9 B8 B7 B6 B5 B4 B3 B2 B1 B0 X X X | XY12 |
+| 10 | B9 B8 B7 B6 B5 B4 B3 B2 B1 B0 X X X X X X| XY10 |
+| 12 | B11 B10 B9 B8 B7 B6 B5 B4 B3 B2 B1 B0 X X X X| XY12 |
 
 - Jetson TX2
 

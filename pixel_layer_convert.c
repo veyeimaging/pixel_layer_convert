@@ -67,13 +67,13 @@ int __JetsonConvert(FILE * infd,FILE * outfd,int shift)
 }
 int __XY10(FILE * infd,FILE * outfd)
 {
-    printf("convert XY10 to Y10 ,total len %d finished\r\n",__JetsonConvert(infd,outfd,5));
+    printf("convert XY10 to Y10 ,total len %d finished\r\n",__JetsonConvert(infd,outfd,6));
     return 0;
 }
 
 int __XY12(FILE * infd,FILE * outfd)
 {
-    printf("convert XY12 to Y12 ,total len %d finished\r\n",__JetsonConvert(infd,outfd,3));
+    printf("convert XY12 to Y12 ,total len %d finished\r\n",__JetsonConvert(infd,outfd,4));
     return 0;
 }
 
